@@ -11,8 +11,8 @@ lb_to_N          = 4.4482216152605;
 MAV.pn0    = 0;    % m
 MAV.pe0    = 0;    % m
 MAV.pd0    = 0; % m (Down, negative altitude)
-MAV.u0     = 2;    % 277 m/s = 1000 km/hr, typical cruise speed 
-MAV.v0     = 1;    % m/s
+MAV.u0     = 210;  % m/s – rough cruise guess; overwritten by compute_trim.m
+MAV.v0     = 0;    % m/s
 MAV.w0     = 0;    % m/s
 MAV.phi0   = 0;    % rad
 MAV.theta0 = 0;    % rad
@@ -90,5 +90,9 @@ MAV.C_ell_delta_r = 0.008;
 MAV.C_n_delta_r   = -0.10;
 
 
-% Thrust model (simple jet, total aircraft thrust at sea level)
-P.T_max_sl = 240000 * lb_to_N;   % ≈ 1.07e6 N static thrust
+% Thrust model: simple jet  T = T_max * delta_t  (delta_t in [0,1])
+% 4 x CFM56 equivalent, total static thrust at sea level
+MAV.T_max = 240000 * lb_to_N;   % ~1.07e6 N total thrust (all engines)
+
+% Make P an alias for MAV so forces_moments.m (which uses P) works directly
+P = MAV;

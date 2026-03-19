@@ -101,9 +101,8 @@ function out = forces_moments(x, delta, wind, P)
         fa_y = qbar * P.S_wing * (P.C_Y_0 + P.C_Y_beta * beta + P.C_Y_p * (P.b / (2*Va)) * p + P.C_Y_r * (P.b / (2*Va)) * r + P.C_Y_delta_a * delta_a + P.C_Y_delta_r * delta_r);
     end
     
-    % Propulsion Force (Simplified model based on textbook)
-    % Note: If Va > k_motor * delta_t, thrust becomes negative (drag). 
-    fp_x = 0.5 * P.rho * P.S_prop * P.C_prop * ((P.k_motor * delta_t)^2 - Va^2);
+    % Propulsion: simple jet thrust model  T = T_max * delta_t  (delta_t in [0,1])
+    fp_x = P.T_max * delta_t;
     fp_y = 0;
     fp_z = 0;
     
@@ -116,8 +115,8 @@ function out = forces_moments(x, delta, wind, P)
     if Va == 0
         Torque(1) = 0; Torque(2) = 0; Torque(3) = 0;
     else
-        % Roll Moment (l) - Includes adverse motor torque
-        Torque(1) = qbar * P.S_wing * P.b * (P.C_ell_0 + P.C_ell_beta * beta + P.C_ell_p * (P.b / (2*Va)) * p + P.C_ell_r * (P.b / (2*Va)) * r + P.C_ell_delta_a * delta_a + P.C_ell_delta_r * delta_r) - P.k_T_P * (P.k_Omega * delta_t)^2;
+        % Roll Moment (l) - jet aircraft: no gyroscopic motor torque
+        Torque(1) = qbar * P.S_wing * P.b * (P.C_ell_0 + P.C_ell_beta * beta + P.C_ell_p * (P.b / (2*Va)) * p + P.C_ell_r * (P.b / (2*Va)) * r + P.C_ell_delta_a * delta_a + P.C_ell_delta_r * delta_r);
         
         % Pitch Moment (m)
         Torque(2) = qbar * P.S_wing * P.c * (P.C_m_0 + P.C_m_alpha * alpha + P.C_m_q * (P.c / (2*Va)) * q + P.C_m_delta_e * delta_e);
