@@ -11,12 +11,13 @@ lb_to_N          = 4.4482216152605;
 MAV.pn0    = 0;    % m
 MAV.pe0    = 0;    % m
 MAV.pd0    = 0; % m (Down, negative altitude)
-MAV.u0     = 210;  % m/s – rough cruise guess; overwritten by compute_trim.m
+MAV.u0     = 200;    % 277 m/s = 1000 km/hr, typical cruise speed 
 MAV.v0     = 0;    % m/s
 MAV.w0     = 0;    % m/s
 MAV.phi0   = 0;    % rad
 MAV.theta0 = 0;    % rad
 MAV.psi0   = 0;    % rad
+MAV.Va0 = 200;   
 e = Euler2Quaternion(MAV.phi0, MAV.theta0, MAV.psi0);
 MAV.e0     = e(1);
 MAV.e1     = e(2);
@@ -89,10 +90,6 @@ MAV.C_Y_delta_r   = 0.120;
 MAV.C_ell_delta_r = 0.008;
 MAV.C_n_delta_r   = -0.10;
 
-
-% Thrust model: simple jet  T = T_max * delta_t  (delta_t in [0,1])
-% 4 x CFM56 equivalent, total static thrust at sea level
-MAV.T_max = 240000 * lb_to_N;   % ~1.07e6 N total thrust (all engines)
-
-% Make P an alias for MAV so forces_moments.m (which uses P) works directly
-P = MAV;
+% Engine model (jet, 4× turbofan engines total)
+MAV.T_max = 240000 * lb_to_N;   % [N] total max thrust (~1.0755e6 N)
+P = MAV;   % alias — all downstream scripts use P
