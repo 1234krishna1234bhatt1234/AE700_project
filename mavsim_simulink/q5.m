@@ -25,7 +25,7 @@ a_phi1 = -(P.Gamma3*P.C_ell_p + P.Gamma4*P.C_n_p) * (P.rho*Va_trim*P.S_wing*P.b^
 a_phi2 =  (P.Gamma3*P.C_ell_delta_a + P.Gamma4*P.C_n_delta_a) * (P.rho*Va_trim^2*P.S_wing*P.b/2);
 a_theta1 = -(P.rho*Va_trim*P.S_wing*P.c^2)/(4*P.Jy)*P.C_m_q;
 a_theta2 = -(P.rho*Va_trim^2*P.S_wing*P.c)/(2*P.Jy)*P.C_m_alpha;
-a_theta3 = -(P.rho*Va_trim^2*P.S_wing*P.c)/(2*P.Jy)*P.C_m_delta_e;
+a_theta3 = (P.rho*Va_trim^2*P.S_wing*P.c)/(2*P.Jy)*P.C_m_delta_e;
 C_D_trim = P.C_D_0 + P.C_D_alpha*alpha_trim + P.C_D_delta_e*delta_e_trim;
 a_V1 = (P.rho*Va_trim/P.mass)*(P.S_wing*C_D_trim);
 a_V2 = P.T_max/P.mass;
@@ -37,7 +37,7 @@ a_beta2 =  (P.rho*Va_trim*P.S_wing)/(2*P.mass)*P.C_Y_delta_r;
 zeta = 0.707;
 
 % Roll PD, B&M Eq. 6.3
-omega_roll  = 1.5;
+omega_roll  = 1.2;
 kp_roll     = omega_roll^2 / a_phi2;
 kd_roll     = (2*zeta*omega_roll - a_phi1) / a_phi2;
 delta_a_max = 40*pi/180;
