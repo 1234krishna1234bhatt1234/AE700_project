@@ -22,7 +22,7 @@ simulation_parameters;  % creates SIM struct
 
 Va_des    = 200;         % desired airspeed (m/s) — from parameters file
 gammas    = [-10, -5, 0, 5, 10] * pi/180;  % path angles to test
-R_des     = 5000;         % wings-level (infinite turn radius)
+R_des     = Inf;          % wings-level (infinite turn radius)
 
 fprintf('\n--- Trim Results for Wings-Level Flight (Va=%.0f m/s) ---\n', Va_des);
 fprintf('%8s %10s %10s %10s %10s %10s\n', 'gamma°', 'alpha°', 'theta°', 'delta_e', 'delta_t', 'climb(m/s)');
@@ -72,7 +72,7 @@ x_trim   = trim_results(idx0).x_trim;
 u_trim   = trim_results(idx0).u_trim;
 
 alpha_trim   = trim_results(idx0).alpha;
-theta_trim   = x_trim(2);    % [phi, theta, ...]
+theta_trim   = x_trim(8);    % state vector: [pn,pe,pd,u,v,w,phi,theta,psi,p,q,r]
 delta_e_trim = u_trim(1);
 delta_t_trim = u_trim(4);
 
