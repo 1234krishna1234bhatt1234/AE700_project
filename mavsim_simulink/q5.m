@@ -109,7 +109,7 @@ Tend = 120;
 t    = 0:Ts:Tend;
 N    = length(t);
 
-dist_mag  = 0.2;    % rad step aileron disturbance
+dist_mag  = 0.2;    % aileron impulse disturbance magnitude (rad), added to delta_a command
 dist_time = 30;     % s
 
 chi_cmd_val   = 20*pi/180;
@@ -219,7 +219,7 @@ theta_AH   = zeros(1,N);
 h_AH       = zeros(1,N);
 Va_AH      = Va_trim*ones(1,N);
 de_AH      = zeros(1,N);
-dt_AH      = zeros(1,N);
+dthrottle_AH      = zeros(1,N);
 theta_c_AH = zeros(1,N);
 
 th_x_AH = zeros(size(th_A,1),1);
@@ -241,10 +241,10 @@ for k = 1:N
     e_th = theta_c_AH(k) - theta_AH(max(1,k-1));
     de_AH(k) = sat_fn(kp_pitch*e_th - kd_pitch*q_theta_AH, delta_e_max, -delta_e_max);
 
-    % Va/throttle PI — dt_AH is perturbation; bounds keep actual δt in [0,1]
+    % Va/throttle PI — dthrottle_AH is perturbation; bounds keep actual δt in [0,1]
     e_Va = Va_trim - Va_AH(max(1,k-1));
     int_Vt_AH = int_Vt_AH + Ts*e_Va;
-    dt_AH(k) = sat_fn(kp_Va_thr*e_Va + ki_Va_thr*int_Vt_AH, ...
+    dthrottle_AH(k) = sat_fn(kp_Va_thr*e_Va + ki_Va_thr*int_Vt_AH, ...
                       1-delta_t_trim, -delta_t_trim);
 
     th_x_AH = th_A*th_x_AH + th_B*de_AH(k);
@@ -255,14 +255,14 @@ for k = 1:N
     h_x_AH = h_A*h_x_AH + h_B*theta_AH(k);
     h_AH(k) = h_C*h_x_AH + h_D*theta_AH(k);
 
-    Vt_x_AH = Vt_A*Vt_x_AH + Vt_B*dt_AH(k);
-    dVa = Vt_C*Vt_x_AH + Vt_D*dt_AH(k);
+    Vt_x_AH = Vt_A*Vt_x_AH + Vt_B*dthrottle_AH(k);
+    dVa = Vt_C*Vt_x_AH + Vt_D*dthrottle_AH(k);
     Va_AH(k) = Va_trim + dVa;
 end
 
 %% Longitudinal — airspeed via throttle
 Va_VT    = Va_trim*ones(1,N);
-dt_VT    = zeros(1,N);
+dthrottle_VT    = zeros(1,N);
 Vt_x_VT  = zeros(size(Vt_A,1),1);
 int_Vt_VT = 0;
 
@@ -272,11 +272,11 @@ for k = 1:N
 
     e_Va = Va_cmd - Va_VT(max(1,k-1));
     int_Vt_VT = int_Vt_VT + Ts*e_Va;
-    dt_VT(k) = sat_fn(kp_Va_thr*e_Va + ki_Va_thr*int_Vt_VT, ...
+    dthrottle_VT(k) = sat_fn(kp_Va_thr*e_Va + ki_Va_thr*int_Vt_VT, ...
                       1-delta_t_trim, -delta_t_trim);
 
-    Vt_x_VT = Vt_A*Vt_x_VT + Vt_B*dt_VT(k);
-    dVa = Vt_C*Vt_x_VT + Vt_D*dt_VT(k);
+    Vt_x_VT = Vt_A*Vt_x_VT + Vt_B*dthrottle_VT(k);
+    dVa = Vt_C*Vt_x_VT + Vt_D*dthrottle_VT(k);
     Va_VT(k) = Va_trim + dVa;
 end
 
@@ -311,6 +311,10 @@ for k = 1:N
     Vp_x_VP = Vp_A*Vp_x_VP + Vp_B*theta_VP(k);
     Va_VP(k) = Vp_C*Vp_x_VP + Vp_D*theta_VP(k);
 end
+
+%% Precompute actual throttle (trim + perturbation) for plots
+throttle_actual_AH = delta_t_trim + dthrottle_AH;
+throttle_actual_VT = delta_t_trim + dthrottle_VT;
 
 %% Plots — Lateral
 
@@ -405,7 +409,7 @@ xlabel('Time (s)','FontSize',11); ylabel('\theta_c (deg)','FontSize',11);
 title('Pitch Command (Altitude Loop)','FontSize',12); grid on;
 subplot(1,3,3)
 plot(t, de_AH*180/pi, 'b-', 'LineWidth',1.5); hold on;
-plot(t, delta_t_trim + dt_AH, 'g-', 'LineWidth',1.5);
+plot(t, throttle_actual_AH, 'g-', 'LineWidth',1.5);
 yline( delta_e_max*180/pi,'r:','FontSize',9);
 yline(-delta_e_max*180/pi,'r:','FontSize',9);
 yline(1,'k:','FontSize',9); yline(0,'k:','FontSize',9);
@@ -423,7 +427,7 @@ legend('V_a actual','V_a commanded','FontSize',10,'Location','southeast');
 xlabel('Time (s)','FontSize',11); ylabel('V_a (m/s)','FontSize',11);
 title('Airspeed via Throttle','FontSize',12); grid on;
 subplot(1,2,2)
-plot(t, delta_t_trim + dt_VT, 'b-', 'LineWidth',1.5);
+plot(t, throttle_actual_VT, 'b-', 'LineWidth',1.5);
 yline(1,'r:','Max','FontSize',9); yline(0,'r:','Min','FontSize',9);
 xlabel('Time (s)','FontSize',11); ylabel('\delta_t (actual)','FontSize',11);
 title('Throttle Setting (actual)','FontSize',12); grid on;
