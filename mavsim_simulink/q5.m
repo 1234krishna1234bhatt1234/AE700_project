@@ -3,8 +3,6 @@
 %% ========================================================================
 %% Simulates lateral and longitudinal autopilots.
 %% Produces all required plots (with/without disturbance).
-%%
-%% Run this script from the mavsim_simulink/ folder.
 %% ========================================================================
 clear; clc; close all;
 
