@@ -7,8 +7,6 @@
 %% Prerequisites:
 %%   - aerosonde_parameters.m  (sets up MAV/P struct)
 %%   - simulation_parameters.m (sets up SIM struct)
-%%   - mavsim_trim.slx must be open in Simulink (for trim & linmod)
-%%   - OR: use the analytic version below (no Simulink required)
 %% ========================================================================
 clear; clc; close all;
 
@@ -24,7 +22,7 @@ simulation_parameters;  % creates SIM struct
 
 Va_des    = 200;         % desired airspeed (m/s) — from parameters file
 gammas    = [-10, -5, 0, 5, 10] * pi/180;  % path angles to test
-R_des     = Inf;         % wings-level (infinite turn radius)
+R_des     = 5000;         % wings-level (infinite turn radius)
 
 fprintf('\n--- Trim Results for Wings-Level Flight (Va=%.0f m/s) ---\n', Va_des);
 fprintf('%8s %10s %10s %10s %10s %10s\n', 'gamma°', 'alpha°', 'theta°', 'delta_e', 'delta_t', 'climb(m/s)');
@@ -48,7 +46,7 @@ end
 fprintf('\nVerification: theta changes with gamma (correct), Va stays at %.0f m/s\n', Va_des);
 
 %% ---- Step (v): Trim for constant turn (load factor n=1.2) ------------
-
+    
 n_load  = 1.2;          % load factor
 CL_des  = 0.85;         % CL in [0.7, 1.0] range
 phi_trim_turn = acos(1/n_load);        % bank angle for coordinated turn
