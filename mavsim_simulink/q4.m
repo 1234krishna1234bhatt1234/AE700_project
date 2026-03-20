@@ -22,7 +22,7 @@ simulation_parameters;  % creates SIM struct
 
 Va_des    = 200;         % desired airspeed (m/s) — from parameters file
 gammas    = [-10, -5, 0, 5, 10] * pi/180;  % path angles to test
-R_des     = Inf;          % wings-level (infinite turn radius)
+R_des     = Inf;         % wings-level (infinite turn radius)
 
 fprintf('\n--- Trim Results for Wings-Level Flight (Va=%.0f m/s) ---\n', Va_des);
 fprintf('%8s %10s %10s %10s %10s %10s\n', 'gamma°', 'alpha°', 'theta°', 'delta_e', 'delta_t', 'climb(m/s)');
@@ -39,7 +39,7 @@ for k = 1:length(gammas)
     trim_results(k).climb     = climb_rate;
     
     fprintf('%8.1f %10.3f %10.3f %10.4f %10.4f %10.3f\n', ...
-        gamma*180/pi, yt(1)*180/pi, xt(2)*180/pi, ut(1), ut(4), climb_rate);
+        gamma*180/pi, yt(1)*180/pi, xt(8)*180/pi, ut(1), ut(4), climb_rate);
 end
 
 % Verify: only altitude should change for different gamma
@@ -72,7 +72,7 @@ x_trim   = trim_results(idx0).x_trim;
 u_trim   = trim_results(idx0).u_trim;
 
 alpha_trim   = trim_results(idx0).alpha;
-theta_trim   = x_trim(8);    % state vector: [pn,pe,pd,u,v,w,phi,theta,psi,p,q,r]
+theta_trim   = x_trim(2);    % [phi, theta, ...]
 delta_e_trim = u_trim(1);
 delta_t_trim = u_trim(4);
 
@@ -84,7 +84,7 @@ a_phi2 =  (P.Gamma3*P.C_ell_delta_a + P.Gamma4*P.C_n_delta_a) ...
 
 a_theta1 = -(P.rho*Va_trim*P.S_wing*P.c^2)/(4*P.Jy) * P.C_m_q;
 a_theta2 = -(P.rho*Va_trim^2*P.S_wing*P.c)/(2*P.Jy) * P.C_m_alpha;
-a_theta3 = -(P.rho*Va_trim^2*P.S_wing*P.c)/(2*P.Jy) * P.C_m_delta_e;
+a_theta3 = (P.rho*Va_trim^2*P.S_wing*P.c)/(2*P.Jy) * P.C_m_delta_e;
 
 C_D_trim = P.C_D_0 + P.C_D_alpha*alpha_trim + P.C_D_delta_e*delta_e_trim;
 a_V1 = (P.rho*Va_trim/P.mass) * (P.S_wing*C_D_trim);
