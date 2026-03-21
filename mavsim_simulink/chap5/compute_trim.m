@@ -1,5 +1,4 @@
 %% compute_trim.m
-clear; clc;
 
 aerosonde_parameters;
 
