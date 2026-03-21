@@ -58,10 +58,10 @@ a_theta3 = -(P.rho * Va_trim^2 * P.S_wing * P.c) / (2 * P.Jy) * P.C_m_delta_e;
 % a_V1 = (1/m)·[∂D/∂Va - ∂T/∂Va]
 %       = (ρ·Va_trim/m)·[S·C_D_trim + S_prop·C_prop]
 C_D_trim = P.C_D_0 + P.C_D_alpha * alpha_trim + P.C_D_delta_e * delta_e_trim;
-a_V1 = (P.rho * Va_trim / P.mass) * (P.S_wing * C_D_trim + P.S_prop * P.C_prop);
-
+% a_V1 = (P.rho * Va_trim / P.mass) * (P.S_wing * C_D_trim + P.S_prop * P.C_prop);
+a_V1 =0;
 % a_V2 = (1/m)·∂T/∂delta_t = ρ·S_prop·C_prop·k_motor²·delta_t_trim / m
-a_V2 = T_max / m;
+a_V2 = P.T_max / P.mass;
 
 % a_V3 = g·cos(gamma_trim) ≈ g   (gravity coupling through pitch angle)
 a_V3 = P.gravity;
@@ -92,7 +92,7 @@ save('transfer_function_coef', ...
     'a_theta1','a_theta2','a_theta3', ...
     'a_V1','a_V2','a_V3', ...
     'a_beta1','a_beta2', ...
-    'Va_trim','Va','theta_trim','ala_V2pha_trim');
+    'Va_trim','Va','theta_trim','alpha_trim');
 
 disp('Transfer function coefficients:')
 disp(['  a_phi1 = ', num2str(a_phi1), '  a_phi2 = ', num2str(a_phi2)])
