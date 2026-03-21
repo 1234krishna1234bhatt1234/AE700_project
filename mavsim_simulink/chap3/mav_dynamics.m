@@ -67,7 +67,7 @@ function [sys,x0,str,ts,simStateCompliance]=mdlInitializeSizes(MAV)
 %
 sizes = simsizes;
 
-sizes.NumContStates  = 13;
+sizes.NumContStates  = 12;
 sizes.NumDiscStates  = 0;
 sizes.NumOutputs     = 12;
 sizes.NumInputs      = 6;
@@ -80,19 +80,10 @@ sys = simsizes(sizes);
 % initialize the initial conditions
 %
 x0  = [...
-    MAV.pn0;...
-    MAV.pe0;...
-    MAV.pd0;...
-    MAV.u0;...
-    MAV.v0;...
-    MAV.w0;...
-    MAV.e0;...
-    MAV.e1;...
-    MAV.e2;...
-    MAV.e3;...
-    MAV.p0;...
-    MAV.q0;...
-    MAV.r0;...
+    MAV.pn0; MAV.pe0; MAV.pd0;...
+    MAV.u0; MAV.v0; MAV.w0;...
+    MAV.phi0; MAV.theta0; MAV.psi0;... % Euler angles replaces e0-e3
+    MAV.p0; MAV.q0; MAV.r0;...
     ];
 
 %
@@ -121,51 +112,43 @@ end
 %=============================================================================
 %
 function sys=mdlDerivatives(t,x,uu, MAV)
-
-    pn    = x(1);
-    pe    = x(2);
-    pd    = x(3);
-    u     = x(4);
-    v     = x(5);
-    w     = x(6);
-    e0    = x(7);
-    e1    = x(8);
-    e2    = x(9);
-    e3    = x(10);
-    p     = x(11);
-    q     = x(12);
-    r     = x(13);
-    fx    = uu(1);
-    fy    = uu(2);
-    fz    = uu(3);
-    ell   = uu(4); % mx
-    m     = uu(5); % my
-    n     = uu(6); % mz
+    % Unpack States
+    u = x(4); v = x(5); w = x(6);
+    phi = x(7); theta = x(8); psi = x(9); % Euler states
+    p = x(10); q = x(11); r = x(12);
     
-    R = Quaternion2Rotation([e0 e1 e2 e3]);
-  
-    vel_body = [u; v; w];
+    % Unpack Forces/Moments
+    fx = uu(1); fy = uu(2); fz = uu(3);
+    ell = uu(4); m = uu(5); n = uu(6);
 
-    pndot = R(1,:)*vel_body; % this is 3.17
-    pedot = R(2,:)*vel_body;
-    pddot = R(3,:)*vel_body;
-    
-    udot = r*v - q*w + fx/MAV.mass; % this is 3.14
+    % 1. Position Derivatives (Navigation equations using Euler angles)
+    % Standard Rotation Matrix Body -> Level (R_b^v)
+    cph = cos(phi);  sph = sin(phi);
+    cth = cos(theta); sth = sin(theta);
+    cps = cos(psi);  sps = sin(psi);
+
+    pndot = (cth*cps)*u + (sph*sth*cps - cph*sps)*v + (cph*sth*cps + sph*sps)*w;
+    pedot = (cth*sps)*u + (sph*sth*sps + cph*cps)*v + (cph*sth*sps - sph*cps)*w;
+    pddot = -sth*u + sph*cth*v + cph*cth*w;
+
+    % 2. Velocity Derivatives (Force equations)
+    udot = r*v - q*w + fx/MAV.mass;
     vdot = p*w - r*u + fy/MAV.mass;
     wdot = q*u - p*v + fz/MAV.mass;
-       
-    e0dot = 0.5*(-p*e1 - q*e2 - r*e3); % Q_dot = 0.5 w X Q 
-    e1dot = 0.5*( p*e0 + r*e2 - q*e3);
-    e2dot = 0.5*( q*e0 - r*e1 + p*e3);
-    e3dot = 0.5*( r*e0 + q*e1 - p*e2);
-        
+
+    % 3. Rotational Kinematics (Euler Rate Equations)
+    % This is the part that replaces e0dot...e3dot
+    phidot   = p + sin(phi)*tan(theta)*q + cos(phi)*tan(theta)*r;
+    thetadot = cos(phi)*q - sin(phi)*r;
+    psidot   = (sin(phi)/cos(theta))*q + (cos(phi)/cos(theta))*r;
+
+    % 4. Rotational Dynamics (Moment equations)
     pdot = MAV.Gamma1*p*q - MAV.Gamma2*q*r + MAV.Gamma3*ell + MAV.Gamma4*n;
     qdot = MAV.Gamma5*p*r - MAV.Gamma6*(p^2 - r^2) + (1/MAV.Jy)*m;
     rdot = MAV.Gamma7*p*q - MAV.Gamma1*q*r + MAV.Gamma4*ell + MAV.Gamma8*n;
-        
 
-sys = [pndot; pedot; pddot; udot; vdot; wdot; e0dot; e1dot; e2dot; e3dot; pdot; qdot; rdot];
-end 
+    sys = [pndot; pedot; pddot; udot; vdot; wdot; phidot; thetadot; psidot; pdot; qdot; rdot];
+end
 % end mdlDerivatives
 
 %
@@ -188,13 +171,7 @@ end
 %=============================================================================
 %
 function sys=mdlOutputs(t,x)
-    pn = x(1); pe = x(2); pd = x(3);
-    u  = x(4); v  = x(5); w  = x(6);
-    qn = x(7:10);                     % quaternion [e0 e1 e2 e3]
-    p  = x(11); q = x(12); r = x(13);
-
-    [phi,theta,psi] = Quaternion2Euler(qn);
-    sys = [pn; pe; pd; u; v; w; phi; theta; psi; p; q; r];
+    sys = x;
 end
 
 % end mdlOutputs
