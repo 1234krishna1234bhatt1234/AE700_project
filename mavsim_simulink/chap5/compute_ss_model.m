@@ -41,10 +41,10 @@ A_lon = [ A(4,4),  A(4,6),  A(4,11), -g*cos(theta_star), 0;
 % For a jet, throttle acts only in body-x → B(6,4) = B(11,4) = 0 analytically.
 % Hardcode those zeros to avoid small linmod numerical artifacts.
 B_lon = [ B(4,1),  B(4,4);
-          B(6,1),  0;
           B(11,1), 0;
           0,       0;
           0,       0 ];
+          B(6,1),  0;
 
 
 % --- LATERAL STATE-SPACE (A_lat, B_lat) ---
